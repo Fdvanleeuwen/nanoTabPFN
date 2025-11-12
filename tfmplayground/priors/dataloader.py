@@ -1,4 +1,4 @@
-"""Data loading utilities for priors."""
+"""Data loading utilities for tabular priors."""
 
 from typing import Callable, Dict, Iterator, Union
 
@@ -56,12 +56,12 @@ class PriorDumpDataLoader(DataLoader):
         batch_size (int): Batch size.
         device (torch.device): Device to load tensors onto.
     """
-
-    def __init__(self, filename, num_steps, batch_size, device):
+    def __init__(self, filename, num_steps, batch_size, device, starting_index=0):
         self.filename = filename
         self.num_steps = num_steps
         self.batch_size = batch_size
         with h5py.File(self.filename, "r") as f:
+            self.num_datapoints_max = f['X'].shape[0]
             if "max_num_classes" in f:
                 self.max_num_classes = f["max_num_classes"][0]
             else:
@@ -70,7 +70,7 @@ class PriorDumpDataLoader(DataLoader):
             self.has_num_datapoints = "num_datapoints" in f
             self.stored_max_seq_len = f["X"].shape[1]
         self.device = device
-        self.pointer = 0
+        self.pointer = starting_index
 
     def __iter__(self):
         with h5py.File(self.filename, "r") as f:
